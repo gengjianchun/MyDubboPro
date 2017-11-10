@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="geng.dao.UserManageDao">
+
+	<select id="qryUserList" resultType="geng.domain.UserInfo">
+		select
+			t1.id,
+			t1.user_account userAccount,
+			t1.user_name userName,
+			t1.role_id roleId,
+			t1.phone,
+			t1.email,
+			t1.usable,
+			t1.founder,
+		    t1.user_type  userType,
+			t1.create_date createDate,
+			t1.update_date updateDate,
+			group_concat(t3.company_name) orgName
+		from
+			dx_user t1
+		left join dx_user_org t2 on t1.id = t2.user_id
+		left join dx_org t3 on t2.org_id = t3.id
+		where
+			t1.valid = 1
+		<if test="user.userAccount != null and user.userAccount != '' ">
+			and t1.user_account like concat(concat('%',#{user.userAccount}),'%')
+		</if>
+		<if test="user.userName != null and user.userName != '' ">
+			and t1.user_name like concat(concat('%',#{user.userName}),'%')
+		</if>
+		<if test="user.roleId != -1 and user.roleId != null ">
+			and t1.role_id = #{user.roleId}
+		</if>
+		<if test="user.orgId != -1 and user.orgId != null">
+			and t3.id = #{user.orgId}
+		</if>
+		<if test="user.phone != null and user.phone != '' ">
+			and t1.phone like concat(concat('%',#{user.phone}),'%')
+		</if>
+		<if test="user.usable != null and user.usable != -1">
+			and t1.usable = #{user.usable}
+		</if>
+		<if test="user.startDate != null ">
+			and t1.create_date &gt; #{user.startDate}
+		</if>
+		<if test="user.endDate != null ">
+			and t1.create_date &lt; #{user.endDate} + INTERVAL 1 DAY
+		</if>
+			group by t2.user_id
+			limit #{user.startRow},#{user.endRow}
+	</select>
+	
+	<select id="countOrg" resultType="java.lang.Integer">
+		select count(*) from (
+			select
+				t1.id,
+				t1.user_account userAccount,
+				t1.user_name userName,
+				t1.role_id roleId,
+				t1.phone,
+				t1.email,
+				t1.usable,
+				t1.founder,
+			    t1.user_type  userType,
+				t1.create_date createDate,
+				t1.update_date updateDate,
+				group_concat(t3.company_name) orgName
+			from
+				dx_user t1
+			left join dx_user_org t2 on t1.id = t2.user_id
+			left join dx_org t3 on t2.org_id = t3.id
+			where
+				t1.valid = 1
+			<if test="user.userAccount != null and user.userAccount != '' ">
+				and t1.user_account like concat(concat('%',#{user.userAccount}),'%')
+			</if>
+			<if test="user.userName != null and user.userName != '' ">
+				and t1.user_name like concat(concat('%',#{user.userName}),'%')
+			</if>
+			<if test="user.roleId != -1 and user.roleId != null ">
+				and t1.role_id = #{user.roleId}
+			</if>
+			<if test="user.orgId != -1 and user.orgId != null">
+				and t3.id = #{user.orgId}
+			</if>
+			<if test="user.phone != null and user.phone != '' ">
+				and t1.phone like concat(concat('%',#{user.phone}),'%')
+			</if>
+			<if test="user.usable != null and user.usable != -1">
+				and t1.usable = #{user.usable}
+			</if>
+			<if test="user.startDate != null ">
+				and t1.create_date &gt; #{user.startDate}
+			</if>
+			<if test="user.endDate != null ">
+				and t1.create_date &lt; #{user.endDate} + INTERVAL 1 DAY
+			</if>
+			group by t2.user_id) us
+	</select>
+
+	<select id = "getCountByOrgId" parameterType="long" resultType="int">
+		SELECT count(id) FROM dx_user_org WHERE org_id = #{orgId}
+	</select>
+	
+	<select id="qryUserById" resultType="geng.domain.UserInfo">
+		select
+			t1.id,
+			t1.user_account userAccount,
+			t1.user_password userPassword,
+			t1.user_name userName,
+			t1.role_id roleId,
+			t1.phone,
+			t1.email,
+			t1.usable,
+			t1.user_type  userType,
+			t1.create_date createDate,
+			t1.update_date updateDate,
+			group_concat(t3.company_name) orgName,
+			group_concat(cast(t3.id as char)) orgIds,
+			group_concat(cast(t4.bloc_id as char)) blocIds
+		from
+			dx_user t1
+		left join dx_user_org t2 on t1.id = t2.user_id
+		left join dx_org t3 on t2.org_id = t3.id
+		LEFT JOIN dx_org_taxno t4 ON  t4.org_id = t3.id
+		where
+			t1.valid = 1
+		and t1.id = #{userId}
+		group by t2.user_id
+	</select>
+	
+	<update id="resetPassword" parameterType="geng.domain.UserInfo">
+		update dx_user 
+		set user_password = #{userPassword},
+		    update_date=now()
+		where id=#{id}
+    </update>
+    
+    <select id="qryUserByAccount" resultType="java.lang.Integer">
+    	 select count(1) as num 
+    	 from dx_user 
+    	 where user_account = #{userAccount}
+    	 	<if test="userId != null ">
+    	 		and id !=#{userId}
+    	 	</if>
+    </select>
+    
+  	<insert id="saveUser" parameterType="geng.domain.UserInfo" useGeneratedKeys="true" keyProperty="user.id">
+    	insert into dx_user (
+			user_account,
+			user_name,
+			user_password,
+			role_id,
+			phone,
+			email,
+			usable,
+			founder,
+			valid,
+			user_type,
+			create_date,
+			update_date,
+			uuid
+		)
+		values
+			(
+			#{user.userAccount}, 
+			#{user.userName},
+			#{user.userPassword},
+			#{user.roleId},
+			#{user.phone},
+			#{user.email},
+			#{user.usable},
+			#{user.founder},
+			#{user.valid},
+			#{user.userType},
+			now(), 
+			now(),
+			#{user.uuid}
+		)
+    </insert>
+    
+    <insert id="saveUserOrg">
+     	insert into dx_user_org (
+			user_id,
+			org_id,
+			valid,
+			create_date,
+			update_date
+		)
+		values
+		 <foreach collection="orgIdList" item="item" separator=",">
+			(
+				#{userId},
+				#{item},
+				1,
+				now(), 
+				now()
+			)
+		</foreach>
+    </insert>
+    
+    <update id="updateUser">
+    	update 
+    		dx_user
+			set user_name = #{user.userName},
+ 			role_id = #{user.roleId},
+ 			phone = #{user.phone},
+ 			email = #{user.email},
+ 			usable = #{user.usable},
+ 			update_date = now()
+		where id = #{user.id}
+    </update>
+    
+     <delete id="deleteUser">
+    	 delete from dx_user where id = #{userId}
+     </delete>
+    
+    <delete id="deleteUserOrg">
+  	  	delete 
+  	  		from dx_user_org 
+  	  	where 
+  	  		user_id = #{userId}
+    </delete>
+    
+    <select id="getAll" resultType="geng.domain.UserInfo">
+    	select * from dx_user
+    </select>
+</mapper>
