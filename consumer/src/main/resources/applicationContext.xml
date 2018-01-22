@@ -10,9 +10,16 @@
 	    http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd"
 	default-autowire="byName">
 	
-	
+	<!-- 配置方式 -->
 	<import resource="spring/spring-config.xml" />
 	<import resource="spring/spring-dubbo.xml" />
 	<import resource="spring/spring-mvc.xml" />
+	
+	<!-- 注解式开发 -->
+	<!--<import resource="spring/spring-config.xml" />  注解方式spring-config.xml-->
+	<!--<import resource="spring/spring-mvc.xml" />-->
+	
+	
+	
 	
 	</beans>

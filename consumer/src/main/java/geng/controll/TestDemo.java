@@ -4,12 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.alibaba.dubbo.config.annotation.Reference;
+
 import geng.service.UserService;
 
 @Controller
 @RequestMapping("/test")
 public class TestDemo {
 
+	//@Reference  注解式开发
 	@Autowired
 	UserService userService;
 	

@@ -7,6 +7,7 @@ import geng.dao.UserManageDao;
 import geng.service.UserService;
 
 @Service
+//@com.alibaba.dubbo.config.annotation.Service 注解式开发
 public class UserServiceImpl implements UserService {
 
 	@Autowired
